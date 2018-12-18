@@ -68,5 +68,6 @@ Title | Description | Returns
 toCoords(mat) | Takes a matrix_js vector and returns an array whose values are converted into the specs of the graph. | Array
 drawVector(mat,initPt) | Takes a matrix_js vector and draws a vector to the graph.  InitPt is the origin point of the vector. | N/A
 saveImage() | Saves the canvas to a png file | N/A
+graph() | Graphs a function in Rn | N/A
 scatter(array) | Graphs an array of matrix_js vectors as points with radius 1.5px | N/A
 createGraph() | The function which draws the grid to the canvas with numbers. | N/A
