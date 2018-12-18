@@ -6,6 +6,27 @@ Requires:
 * [p5.js](https://p5js.org/)
 * [matrix_js](https://github.com/jacob-alford/matrix_js) (my matrix library)
 
+## Examples
+### Vectors
+#### Creation
+```
+let a = new Matrix([2,2]);
+let b = new Matrix([-1,3]);
+let c = Matrix.add(a,b);
+```
+#### Graphing
+```
+stroke("blue");
+drawVector(a,origin);
+
+stroke("green");
+drawVector(b,toCoords(a));
+
+stroke("yellow");
+drawVector(c,origin);
+```
+### Creating Scatter Plots
+
 ## Initial Configuration
 Title | Function | Type
 ------------ | ------------- | -------------
