@@ -71,10 +71,10 @@ xLim | Sets the limits of the x-axis, each integer is its own line. | Array, len
 yLim | Sets the limits of the y-axis, each integer is its own line. | Array, length 2
 dims | Sets the diminsions of the canvas (in pixels). | Array, length 2
 filename | The filename of the saved image. | String
-backgroundColor | The background color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Number (0-255); String ("black")
-majorGridColor | The major axis color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Number (0-255); String ("black")
-minorGridColor | The grid line color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Number (0-255); String ("black")
-textColor | The color of the numbers on the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Number (0-255); String ("black")
+backgroundColor | The background color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Integer (0-255); String ("black")
+majorGridColor | The major axis color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Integer (0-255); String ("black")
+minorGridColor | The grid line color of the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Integer (0-255); String ("black")
+textColor | The color of the numbers on the graph | [p5.js Color Object](https://p5js.org/reference/#/p5.Color); Integer (0-255); String ("black")
 textSz | The size of the numbers on the graph | Number
 textOffset | The x and y offset in pixels of the numbers on the graph | Array, length 2
 
