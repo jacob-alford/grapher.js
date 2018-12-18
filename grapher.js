@@ -11,7 +11,7 @@ const saveImage = () => {
 }
 // - Graphs a function -
 const graph = (f,coeff=1,c=0,innerC=0) => {
-  for(let i=xLim[0];i<xLim[1];i+=.01){
+  for(let i=xLim[0];i<xLim[1];i+=.001){
     point(map(i,xLim[0],xLim[1],0,dims[0]),map(f(i+innerC,coeff)+c,yLim[0],yLim[1],dims[1],0));
   }
 }
