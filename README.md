@@ -22,7 +22,7 @@ textOffset | The x and y offset in pixels of the numbers on the graph | Array, l
 
 ## Supporting Functions
 Title | Description | Returns
------------- | -------------
+------------ | ------------- | -------------
 toCoords(mat) | Takes a matrix_js vector and returns an array whose values are converted into the specs of the graph. | Array
 drawVector(mat,initPt) | Takes a matrix_js vector and draws a vector to the graph.  InitPt is the origin point of the vector. | N/A
 saveImage() | Saves the canvas to a png file | N/A
