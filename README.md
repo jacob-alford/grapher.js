@@ -8,7 +8,7 @@ Requires:
 
 ## Initial Configuration
 Title | Function | Type
------------- | -------------
+------------ | ------------- | -------------
 xLim | Sets the limits of the x-axis, each integer is its own line. | Array, length 2
 yLim | Sets the limits of the y-axis, each integer is its own line. | Array, length 2
 dims | Sets the diminsions of the canvas (in pixels). | Array, length 2
