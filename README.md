@@ -25,8 +25,29 @@ drawVector(b,toCoords(a));
 stroke("yellow");
 drawVector(c,origin);
 ```
-### Creating Scatter Plots
-
+### Scatter Plots
+#### Creation
+```
+let points = [];
+for(let i=0;i<500;i++){
+  points.push(mat_rand([2],0,15));
+}
+```
+#### Graphing
+```
+stroke("pink");
+scatter(points);
+```
+### Functions in Rn
+#### Creation
+```
+const f = (x,coeff = 1) => x*sin(-coeff*x) + 3;
+```
+#### Graphing
+```
+stroke("red");
+graph(f);
+```
 ## Initial Configuration
 Title | Function | Type
 ------------ | ------------- | -------------
