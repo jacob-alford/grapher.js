@@ -7,7 +7,7 @@ Requires:
 * [p5.js](https://p5js.org/)
 * [matrix_js](https://github.com/jacob-alford/matrix_js) (my matrix library)
 
-## Examples
+## Example
 ### Vectors
 #### Creation
 ```
@@ -48,6 +48,19 @@ const f = (x,coeff = 1) => x*sin(-coeff*x) + 3;
 ```
 stroke("red");
 graph(f);
+```
+### Configuration
+```
+const xLim = [-2,16];
+const yLim = [-2,16];
+const dims = [500,500];
+const filename = "graph";
+const backgroundColor = "black";
+const majorGridLineColor = 200;
+const minorGridLineColor = 50;
+const textColor = 200;
+const textSz = 15;
+const textOffset = [-4,18];
 ```
 *Note:*
 > The origin object referenced above is an array which determines the pixel dimensions of the origin point depending on initial configuration.
