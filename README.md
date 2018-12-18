@@ -48,6 +48,8 @@ const f = (x,coeff = 1) => x*sin(-coeff*x) + 3;
 stroke("red");
 graph(f);
 ```
+Note:
+> The origin object referenced above is an array which determines the pixel dimensions of the origin point depending on initial configuration.
 ## Initial Configuration
 Title | Function | Type
 ------------ | ------------- | -------------
