@@ -265,6 +265,32 @@ class Matrix{
         return false;
     }
   }
+  getRow(n){
+    if(this.shape.length == 2 && !this.shape.includes(1)){
+      if(n < this.shape[0]){
+        return new Matrix(this.data[n]);
+      }else{
+        console.error("That row doesn't exist in this matrix!");
+        return false;
+      }
+    }else{
+      console.error("Only currently implemented for two dimensional matricies!");
+      return false;
+    }
+  }
+  getCol(n){
+    if(this.shape.length == 2 && !this.shape.includes(1)){
+      if(n < this.shape[1]){
+        return new Matrix(Matrix.transpose(this).getRow(n).plain);
+      }else{
+        console.error("That column doesn't exist in this matrix!");
+        return false;
+      }
+    }else{
+      console.error("Only currently implemented for two dimensional matricies!");
+      return false;
+    }
+  }
   // --- View ---
   print(verbose = false,flat = false){
     if(verbose){
@@ -492,7 +518,7 @@ class Matrix{
           outArr.push(a.data[d][c]);
         }
       }
-      return new Matrix(outArr,a.shape.reverse());
+      return new Matrix(outArr,[a.shape[1],a.shape[0]]);
     }else{
       console.error("Transpose currently only works with two-dimensional matricies!");
       return false;
@@ -572,6 +598,46 @@ class Matrix{
       }
     }else{
       console.error("Both matricies must be vectors!");
+      return false;
+    }
+  }
+  static matMul(a,b){
+    if(a.shape.length == 2 && b.shape.length == 2){
+      if(a.shape[0] == b.shape[1] || a.shape[1] == b.shape[0]){
+        let tempA;
+        let tempB;
+        if(a.shape[0] == b.shape[1] && a.shape[1] == b.shape[0]){
+          if(a.shape[0] > a.shape[1]){
+            tempA = a.shape[0];
+            tempB = b.shape[1];
+          }else{
+            tempA = a.shape[1];
+            tempB = b.shape[0];
+          }
+        }else{
+          if(a.shape[0] == b.shape[1]){
+            tempA = a.shape[0];
+            tempB = b.shape[1];
+          }else if(a.shape[1] == b.shape[0]){
+            tempA = a.shape[1];
+            tempB = b.shape[0];
+          }
+        }
+        let aShape = a.shape[1-a.shape.indexOf(tempA)];
+        let bShape = b.shape[1-b.shape.indexOf(tempB)];
+        let outArr = [];
+        for(let aI=0;aI<aShape;aI++){
+          for(let bI=0;bI<bShape;bI++){
+            outArr.push(a.getRow(aI).innerProduct(b.getCol(bI)));
+          }
+        }
+        return new Matrix(outArr,[aShape,bShape]);
+      }else{
+        console.error("Matricies must match in outer dimensions!");
+        return false;
+      }
+    }else{
+      console.error("Matricies must be two dimensional!");
       return false;
     }
   }
