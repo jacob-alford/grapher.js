@@ -24,7 +24,7 @@ for(let i=0;i<500;i++){
   points.push(mat_rand([2],0,15));
 }
 // --------- Plain Functions --------------
-const f = (x,coeff = 1) => x*sin(-coeff*x) + 3;
+const f = (x,c) => c[0]*sin(c[1]*x) + c[2];
 // -------------------------------------- //
 function setup() {
   canv = createCanvas(dims[0],dims[1]);
@@ -47,5 +47,5 @@ function setup() {
   scatter(points); // Draw the scatter plot
 
   stroke("red");
-  graph(f); // Graph the function
+  graph(f,2,5,1); // Graph the function, where 2,5,1 represents amplitude, angular frequency, and y-offset respectively.
 }

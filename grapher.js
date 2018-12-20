@@ -10,9 +10,9 @@ const saveImage = () => {
   saveCanvas(canv,filename,'png');
 }
 // - Graphs a function -
-const graph = (f,coeff=1,c=0,innerC=0) => {
+const graph = (f,...args) => {
   for(let i=xLim[0];i<xLim[1];i+=.001){
-    point(map(i,xLim[0],xLim[1],0,dims[0]),map(f(i+innerC,coeff)+c,yLim[0],yLim[1],dims[1],0));
+    point(map(i,xLim[0],xLim[1],0,dims[0]),map(f(i,args),yLim[0],yLim[1],dims[1],0));
   }
 }
 // - Graphs the vectors (1d matricies with two entries) as points who are contained in an array arr -

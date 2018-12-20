@@ -311,7 +311,7 @@ class Matrix{
     if(this.shape.length == 2 && !this.shape.includes(1)){
       if(n <= this.shape[0]){
         if(vec.shape.length == 2 && vec.shape.includes(1)){
-          if(vec.shape[1-vec.shape.indexOf(1)] == this.shape[0]){
+          if(vec.shape[1-vec.shape.indexOf(1)] == this.shape[1]){
             let wrkArr = this.data;
             wrkArr[n] = vec.plain;
             this.resetData(flattenArr(wrkArr,this.shape),this.shape);
@@ -383,6 +383,9 @@ class Matrix{
   }
   sum(){
     return this.plain.reduce((a,c) => a += c);
+  }
+  product(){
+    return this.plain.reduce((a,c) => a = a*c);
   }
   mean(){
     return this.sum()/this.plain.length;
@@ -600,7 +603,7 @@ class Matrix{
       return false;
     }
   }
-  subRows(r1,r2,c){ // Sets row 2 to c*row 1 minux row 2
+  subRows(r1,r2,c){ // Sets row 2 to c*row 1 minus row 2
     if(this.shape.length == 2){
       if(r1 <= this.shape[0] && r2 <= this.shape[0]){
         if(typeof c == "number"){
@@ -818,32 +821,72 @@ class Matrix{
   static det(a){
     if(a.shape.length == 2){
       if(a.shape[0] == a.shape[1]){
-        if(a.shape[0] == 2){
-          return a.data[0][0]*a.data[1][1] - a.data[0][1]*a.data[1][0];
-        }else if(a.shape[0] == 3){
-          let output = 0;
-          for(let i=0;i<3;i++){
-            if(i==0) output += a.data[0][i]*(a.data[1][1]*a.data[2][2]-a.data[2][1]*a.data[2][2]);
-            else if(i==1) output += -1*a.data[0][i]*(a.data[1][0]*a.data[2][2]-a.data[2][0]*a.data[1][2]);
-            else output += a.data[0][i]*(a.data[1][0]*a.data[2][1]-a.data[2][0]*a.data[1][1]);
-          }
-          return output;
+        let returnProduct = Matrix.gaussElim(a)[1];
+        if(isAMatrix(returnProduct)){
+          return returnProduct.product();
         }else{
-          console.error("Determinant calculations currently only implemented for 3x3 and 2x2 matricies!");
-          return false;
+          return returnProduct.reduce((a,c) => a=a*c);
         }
       }else{
         console.error("Determinant calculations only work with square matricies!");
         return false;
       }
     }else{
-      console.error("Detminant calculations only currently work with two-dimensional matricies!");
+      console.error("Determinant calculations only currently work with two-dimensional matricies!");
       return false;
     }
   }
-  static gaussElim(a){
+  static gaussElim(a,upDown=true){
     if(a.shape.length == 2 && !a.shape.includes(1)){
-
+      let operationsArray = [];
+      let workingMat = Matrix.duplicate(a);
+        // --- Do the swapping --- //
+        // --- Check for zeros -- //
+        // --- If all zeros -- //
+        if(sameArr(Matrix.transpose(workingMat).data[0],arr_fixed(workingMat.shape[1],0))){ // If it's all zeros
+          console.error("First column of matrix contains all zeros!"); // Only prepared to swap the first column :-(
+          return false;
+        }else{
+          for(let r=0;r<workingMat.shape[0];r++){ // Sort by size
+            for(let c=0;c<workingMat.shape[0];c++){ // Compare every element r to every other element c
+              if(r != c){ // Don't compare it to itself
+                if(workingMat.data[r][0] > workingMat.data[c][0]){
+                  workingMat.swapRows(r,c);
+                  operationsArray.push(-1);
+                }
+              }
+            }
+          }
+        }
+        // --- Do the reduction --- //
+        // Run for every column of matrix but stop when it hits the number of rows (allows for augments for inverse and determinant)
+        let checkLength = (workingMat.shape[1]>workingMat.shape[0])?workingMat.shape[0]:workingMat.shape[1]; // Allow for augments
+        for(let r=0;r<checkLength;r++){ // Note each iteration will try and make the c,c position = 1, and below zeros.
+          if(workingMat.data[r][r] != 1){ // Make the number = 1 (if it isn't already)
+            operationsArray.push(workingMat.data[r][r]);
+            workingMat.scaleRow(r,1/workingMat.data[r][r]);
+          }
+          for(let b=r+1;b<workingMat.shape[0];b++){ // Make the lower part zero
+            if(workingMat.data[b][r] != 0){
+              workingMat.addRows(r,b,-1*workingMat.data[b][r]);
+            }
+          }
+        }
+        if(upDown){
+          for(let r=1;r<checkLength;r++){ // Note each iteration will try and make the c,c position = 1, and above zeros.
+            for(let a=r-1;a>=0;a--){ // Make the upper part zero (representing the rows)
+              if(workingMat.data[a][r] != 0){
+                workingMat.addRows(r,a,-1*workingMat.data[a][r]);
+              }
+            }
+          }
+        }
+        if(operationsArray.length > 1){
+          return [workingMat,new Matrix(operationsArray)];
+        }else{
+          console.log("Note: gaussian elimination didn't require any more than one swap or scale!");
+          return [workingMat,operationsArray];
+        }
     }else{
       console.error("Gaussian elimination only works on two-dimensional matricies!");
       return false;
