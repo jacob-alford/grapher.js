@@ -188,6 +188,7 @@ class Matrix{
       }
       this.data = outArr;
       this.plain = plainArr;
+      this.shape=shape;
       return this;
     }else{
       console.error("Input shape must match the number of items in input array!");
@@ -266,12 +267,26 @@ class Matrix{
     }
   }
   getRow(n){
-    if(this.shape.length == 2 && !this.shape.includes(1)){
-      if(n < this.shape[0]){
-        return new Matrix(this.data[n]);
-      }else{
-        console.error("That row doesn't exist in this matrix!");
-        return false;
+    if(this.shape.length == 2){
+      if(!this.shape.includes(1)){
+        if(n < this.shape[0]){
+          return new Matrix(this.data[n]);
+        }else{
+          console.error("That row doesn't exist in this matrix!");
+          return false;
+        }
+      }else{ // a vector
+        if(this.shape[0] > this.shape[1]){ // Column Vector
+          console.error("getRow for vectors only works on row vectors!");
+          return false;
+        }else{ // Row Vector
+          if(n > 1){
+            return Matrix.duplicate(this);
+          }else{
+            console.error("That column doesn't exist in this matrix!");
+            return false;
+          }
+        }
       }
     }else{
       console.error("Only currently implemented for two dimensional matricies!");
@@ -279,12 +294,26 @@ class Matrix{
     }
   }
   getCol(n){
-    if(this.shape.length == 2 && !this.shape.includes(1)){
-      if(n < this.shape[1]){
-        return new Matrix(Matrix.transpose(this).getRow(n).plain);
-      }else{
-        console.error("That column doesn't exist in this matrix!");
-        return false;
+    if(this.shape.length == 2){
+      if(!this.shape.includes(1)){
+        if(n < this.shape[1]){
+          return new Matrix(Matrix.transpose(this).getRow(n).plain);
+        }else{
+          console.error("That column doesn't exist in this matrix!");
+          return false;
+        }
+      }else{ // A vector
+        if(this.shape[0] > this.shape[1]){ //Column Vector
+          if(n==0){
+            return Matrix.transpose(this);
+          }else{
+            console.error("That column doesn't exist in this matrix!");
+            return false;
+          }
+        }else{ // Row Vector
+          console.error("getCol for vectors only works on column vectors!");
+          return false;
+        }
       }
     }else{
       console.error("Only currently implemented for two dimensional matricies!");
@@ -751,44 +780,66 @@ class Matrix{
     }
   }
   static matMul(a,b){
-    if(a.shape.length == 2 && b.shape.length == 2){
-      if(a.shape[0] == b.shape[1] || a.shape[1] == b.shape[0]){
-        let tempA;
-        let tempB;
-        if(a.shape[0] == b.shape[1] && a.shape[1] == b.shape[0]){
-          if(a.shape[0] > a.shape[1]){
-            tempA = a.shape[0];
-            tempB = b.shape[1];
+    if(!(a.shape.includes(1) && b.shape.includes(1))){
+      if(a.shape.includes(1) || b.shape.includes(1)){
+          if(a.shape.includes(1)){
+            console.error("Matrix transformations require the transformation matrix called first!");
+            return false;
           }else{
-            tempA = a.shape[1];
-            tempB = b.shape[0];
+            if(b.shape[0] != a.shape[0] && b.shape[1] == a.shape[0]){
+              console.log("Note: vector transposed to be a column vector!");
+              b.transpose();
+            }else if(b.shape[1] != a.shape[0] && b.shape[0] != a.shape[0]){
+              console.error("Matrix and vector parameters must match for matrix transformations!");
+              return false;
+            }
           }
+      }
+      if(a.shape.length == 2 && b.shape.length == 2){
+        if(a.shape[0] == b.shape[1] || a.shape[1] == b.shape[0]){
+          let tempA;
+          let tempB;
+          if(a.shape[0] == b.shape[1] && a.shape[1] == b.shape[0]){
+            if(a.shape[0] > a.shape[1]){
+              tempA = a.shape[0];
+              tempB = b.shape[1];
+            }else{
+              tempA = a.shape[1];
+              tempB = b.shape[0];
+            }
+          }else{
+            if(a.shape[0] == b.shape[1]){
+              tempA = a.shape[0];
+              tempB = b.shape[1];
+            }else if(a.shape[1] == b.shape[0]){
+              tempA = a.shape[1];
+              tempB = b.shape[0];
+            }
+          }
+          let aShape = a.shape[1-a.shape.indexOf(tempA)];
+          let bShape = b.shape[1-b.shape.indexOf(tempB)];
+          let outArr = [];
+          for(let aI=0;aI<aShape;aI++){
+            for(let bI=0;bI<bShape;bI++){
+              outArr.push(a.getRow(aI).innerProduct(b.getCol(bI)));
+            }
+          }
+          return new Matrix(outArr,[aShape,bShape]);
         }else{
-          if(a.shape[0] == b.shape[1]){
-            tempA = a.shape[0];
-            tempB = b.shape[1];
-          }else if(a.shape[1] == b.shape[0]){
-            tempA = a.shape[1];
-            tempB = b.shape[0];
-          }
+          console.error("Matricies must match in outer dimensions!");
+          return false;
         }
-        let aShape = a.shape[1-a.shape.indexOf(tempA)];
-        let bShape = b.shape[1-b.shape.indexOf(tempB)];
-        let outArr = [];
-        for(let aI=0;aI<aShape;aI++){
-          for(let bI=0;bI<bShape;bI++){
-            outArr.push(a.getRow(aI).innerProduct(b.getCol(bI)));
-          }
-        }
-        return new Matrix(outArr,[aShape,bShape]);
       }else{
-        console.error("Matricies must match in outer dimensions!");
+        console.error("Matricies must be two dimensional!");
         return false;
       }
     }else{
-      console.error("Matricies must be two dimensional!");
+      console.error("Matrix multiplication between two vectors not defined!");
       return false;
     }
+  }
+  static vecTransform(transMatrix,a){
+    return Matrix.matMul(transMatrix,a);
   }
   static trace(a,b){
     if(a.shape.length == 2 && sameArr(a.shape,b.shape)){
