@@ -388,6 +388,14 @@ class Matrix{
       return false;
     }
   }
+  // --- Limit ---
+  cap(n){
+    for(let i=0;i<this.plain.length;i++){
+      if(this.plain[i] > n) this.plain[i] = n;
+    }
+    this.resetData();
+    return this;
+  }
   // --- View ---
   print(verbose = false,flat = false){
     if(verbose){
@@ -600,15 +608,6 @@ class Matrix{
     this.resetData();
     return this;
   }
-  // --- Vector Math ---
-  static norm(a){
-    if(a.shape.length == 1){
-      return Math.sqrt(Matrix.pow(a,2).sum());
-    }else{
-      console.error("Normalize only works on vectors!");
-      return false;
-    }
-  }
   // --- Row Reduction Math ---
   addRows(r1,r2,c=1){ // Sets row 2 to c*row 1 plus row 2
     if(this.shape.length == 2){
@@ -722,19 +721,6 @@ class Matrix{
     if(a.shape.length == 2 && sameArr(a.shape,b.shape)){
       if(a.shape[0] == 1 || a.shape[1] == 1){
         return Matrix.mul(a,b).sum();
-      }else{
-        console.error("The dot product only operates on vectors!");
-        return false;
-      }
-    }else{
-      console.error("The dot product only works on vectors of the same shape!");
-      return false;
-    }
-  }
-  dot(a){
-    if(a.shape.length == 2 && sameArr(this.shape,a.shape)){
-      if(a.shape[0] == 1 || a.shape[1] == 1){
-        return Matrix.mul(this,a).sum();
       }else{
         console.error("The dot product only operates on vectors!");
         return false;
@@ -1013,6 +999,54 @@ class Matrix{
     return this;
   }
 }
+class Vector extends Matrix{
+  constructor(data,rc = "row"){
+      let shape = [1,data.length];
+      if(rc == "col"){
+        shape = [data.length,1];
+      }
+      super(data,shape);
+  }
+  norm(){
+    return Math.sqrt(Matrix.pow(this,2).sum());
+  }
+  dot(a){
+    if(sameArr(this.shape,a.shape)){
+      return Matrix.mul(this,a).sum();
+    }else{
+      console.error("Determinant requires matching shapes!");
+      return false;
+    }
+  }
+  static cross(a,b){
+    if(sameArr(a.shape,b.shape)){
+      if(a.shape.includes(3)){
+        let outData = [
+                      a.plain[1]*b.plain[2]-a.plain[2]*b.plain[1],
+                      -(a.plain[0]*b.plain[2]-a.plain[2]*b.plain[0]),
+                      a.plain[0]*b.plain[1]-a.plain[1]*b.plain[0]
+                    ];
+        return new Vector(outData);
+      }else{
+        console.error("Vectors must be three dimensional!");
+        return false;
+      }
+    }else{
+      console.error("Vectors must be the same shape!");
+      return false;
+    }
+  }
+  normalize(){
+    return this.div(this.norm());
+  }
+  setLen(len){
+    return this.normalize().mul(len);
+  }
+  static angleBetween(a,b,degrees=false){
+    if(degrees) return Math.acos(Vector.dot(a,b)/(a.norm()*b.norm())) * (180/Math.PI);
+    else return Math.acos(Vector.dot(a,b)/(a.norm()*b.norm()));
+  }
+}
 const sameArr = (a,b) => {
   if(a.length != b.length) return false;
   for(let c=0;c<a.length;c++) if(a[c] != b[c]) return false;
@@ -1081,6 +1115,7 @@ const flattenArr = (arr,shape) => {
     }
     return outArr;
 }
+
 
 const mat_identity = shape => {
   if(shape[0] === undefined || typeof shape == "string"){
