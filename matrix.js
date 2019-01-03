@@ -890,6 +890,7 @@ class Matrix{
                 if(workingMat.data[r][0] > workingMat.data[c][0]){
                   workingMat.swapRows(r,c);
                   operationsArray.push(-1);
+                  console.log(workingMat);
                 }
               }
             }
@@ -901,7 +902,7 @@ class Matrix{
         for(let r=0;r<checkLength;r++){ // Note each iteration will try and make the c,c position = 1, and below zeros.
           if(workingMat.data[r][r] != 1){ // Make the number = 1 (if it isn't already)
             operationsArray.push(workingMat.data[r][r]);
-            workingMat.scaleRow(r,1/workingMat.data[r][r]);
+            if(workingMat.data[r][r] != 0) workingMat.scaleRow(r,1/workingMat.data[r][r]);
           }
           for(let b=r+1;b<workingMat.shape[0];b++){ // Make the lower part zero
             if(workingMat.data[b][r] != 0){
@@ -1045,6 +1046,13 @@ class Vector extends Matrix{
   static angleBetween(a,b,degrees=false){
     if(degrees) return Math.acos(Vector.dot(a,b)/(a.norm()*b.norm())) * (180/Math.PI);
     else return Math.acos(Vector.dot(a,b)/(a.norm()*b.norm()));
+  }
+  static orthoProject(vec,...args){
+    let wrkVec = mat_fixed(args[0].shape,0);
+    args.forEach((c,i) => {
+      wrkVec.add(c.mul(Matrix.innerProduct(vec,c)/(Math.pow(c.norm(),2))));
+    });
+    return new Vector(wrkVec.plain);
   }
 }
 const sameArr = (a,b) => {
