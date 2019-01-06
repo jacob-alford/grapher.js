@@ -207,35 +207,131 @@ class Matrix{
   static duplicate(a){
     return new Matrix(a.plain,a.shape);
   }
-  static concat(arr,newShape = [arr[0].data.length,arr.length]){
-    if(isAMatrix(arr[0])){
-      let check = true;
-      for(let i=0;i<arr.length;i++){
-        for(let j=0;j<arr.length;j++){
-            if(!sameArr(arr[i].shape,arr[j].shape)) check=false;
-        }
+  static matFromVecs(...args){
+    if(args[0].shape === undefined){
+      let tempArr = [];
+      args[0].forEach(c => tempArr.push(c));
+      args = tempArr;
+    }
+    let check = true;
+    for(let i=0;i<args.length;i++){
+      for(let j=0;j<args.length;j++){
+        if(!sameArr(args[i].shape,args[j].shape)) check = false;
       }
-      if(check){
-        if(newShape.reduce((a,c) => a=a*c) == (arr[0].data.length*arr.length)){
-          let outArr = [];
-          arr.forEach(c => {
-            c.plain.forEach(v => {
-              outArr.push(v);
-            });
+    }
+    if(check){
+      if(args[0].shape.includes(1)){
+        if(args[0].shape.indexOf(1) == 0){ // row vector
+          let tempMat = mat_ones([args.length,args[0].shape[1]]);
+          args.forEach((c,i) => {
+            tempMat.setRow(i,c);
           });
-          return new Matrix(outArr,newShape);
-        }else{
-          console.error("New provided shape does not conform to number of items in array!");
-          return false;
+          return tempMat;
+        }else{  // column vector
+          let tempMat = mat_ones([args[0].shape[0],args.length]);
+          args.forEach((c,i) => {
+            tempMat.setCol(i,c);
+          });
+          return tempMat;
         }
       }else{
-        console.error("Not all shapes match!");
+        console.error("Matricies must be vectors!");
         return false;
       }
     }else{
-      console.error("Argument does not contain matricies!");
+      console.error("Not all vector shapes match!");
       return false;
     }
+  }
+  colsToVectors(){
+    if(this.shape.length == 2){
+      let temp = Matrix.transpose(this);
+      let outArr = [];
+      temp.data.forEach(c => {
+        let tempVec = new Vector(c);
+        outArr.push(tempVec.transpose());
+      });
+      return outArr;
+    }else{
+      console.error("Only works with 2-dimensional matricies!");
+      return false;
+    }
+  }
+  rowsToVectors(){
+    if(this.shape.length == 2){
+      let temp = Matrix.duplicate(this);
+      let outArr = [];
+      temp.data.forEach(c => outArr.push(new Vector(c)));
+      return outArr;
+    }else{
+      console.error("Only works with 2-dimensional matricies!");
+      return false;
+    }
+  }
+  static matFromMatsByCol(...args){
+    let check = true;
+    for(let i=0;i<args.length;i++){
+      for(let j=0;j<args.length;j++){
+        if(args[i].shape[0] != args[j].shape[0]) check = false;
+      }
+    }
+    if(check){
+      if(args[0].shape.length == 2 && !args[0].shape.includes(1)){
+        let colArr = [];
+        args.forEach(c => {
+          let tempArr = c.colsToVectors();
+          tempArr.forEach(vec => colArr.push(vec));
+        });
+        return Matrix.matFromVecs(colArr);
+      }else{
+        console.error("Function only concatonates 2-dimensional matricies!");
+        return false;
+      }
+    }else{
+      console.error("One or more shape mismatch!");
+      return false;
+    }
+  }
+  static matFromMatsByRow(...args){
+    let check = true;
+    for(let i=0;i<args.length;i++){
+      for(let j=0;j<args.length;j++){
+        if(args[i].shape[1] != args[j].shape[1]) check = false;
+      }
+    }
+    if(check){
+      if(args[0].shape.length == 2 && !args[0].shape.includes(1)){
+        let colArr = [];
+        args.forEach(c => {
+          let tempArr = c.rowsToVectors();
+          tempArr.forEach(vec => colArr.push(vec));
+        });
+        console.log(colArr);
+        return Matrix.matFromVecs(colArr);
+      }else{
+        console.error("Function only concatonates 2-dimensional matricies!");
+        return false;
+      }
+    }else{
+      console.error("One or more shape mismatch!");
+      return false;
+    }
+  }
+  splitByCol(low,high=this.shape[1]-1){ //low and high are inclusive by index
+    let vecs = this.colsToVectors();
+    let outArr = [];
+    vecs.forEach((c,i) => {
+      if(i>=low) outArr.push(c);
+    });
+    return Matrix.matFromVecs(outArr);
+  }
+  splitByRow(low,high=this.shape[0]-1){ //low and high are inclusive by index
+    let vecs = this.rowsToVectors();
+    let outArr = [];
+    vecs.forEach((c,i) => {
+      if(i>=low) outArr.push(c);
+    });
+    return Matrix.matFromVecs(outArr);
   }
   // --- Get and Set ---
   static getValue(a,...args){
@@ -369,7 +465,7 @@ class Matrix{
           if(vec.shape[1-vec.shape.indexOf(1)] == this.shape[0]){
             let wrkArr = Matrix.transpose(this).data;
             wrkArr[n] = vec.plain;
-            this.resetData(flattenArr(wrkArr,this.shape),this.shape).transpose();
+            this.resetData(flattenArr(wrkArr,this.shape.reverse()),this.shape).transpose();
             return this;
           }else{
             console.error("Vector and matrix column shape mismatch!");
@@ -427,8 +523,77 @@ class Matrix{
   mean(){
     return this.sum()/this.plain.length;
   }
-  stDev(){
-    return Math.sqrt((Matrix.pow(this,2).sum() / this.plain.length) - Math.pow(this.mean(),2));
+  static expVal(a,weights = mat_ones(a.shape).div(a.plain.length),probabilities = true){ // If weight matrix contains probabilities
+    if(probabilities){
+      return Matrix.mul(a,weights).sum();
+    }else{
+      return Matrix.mul(a,weights).sum()/a.plain.length;
+    }
+  }
+  static var(a,weights = mat_ones(a.shape).div(a.plain.length),probabilities = true){
+      return Matrix.expVal(Matrix.pow(a,2),weights,probabilities) - Math.pow(Matrix.expVal(a,weights),2);
+  }
+  static stDev(a,weights = mat_ones(a.shape).div(a.plain.length),probabilities=true){
+    return Math.sqrt(Matrix.var(a,weights,probabilities));
+  }
+  static cov(a,b){
+    return Matrix.mul(a,b).sum()-a.sum()*b.sum()/a.plain.length;
+  }
+  static corr(a,b){
+    let SSx = Matrix.pow(a,2).sum() - Math.pow(a.sum(),2)/a.plain.length;
+    let SSy = Matrix.pow(b,2).sum() - Math.pow(b.sum(),2)/b.plain.length;
+    let SSxy = Matrix.mul(a,b).sum()-a.sum()*b.sum()/a.plain.length;
+    return SSxy/Math.sqrt(SSx*SSy);
+  }
+  static linReg(a,b,fn = false){
+    let SSx = Matrix.pow(a,2).sum() - Math.pow(a.sum(),2)/a.plain.length;
+    let SSy = Matrix.pow(b,2).sum() - Math.pow(b.sum(),2)/b.plain.length;
+    let SSxy = Matrix.mul(a,b).sum()-a.sum()*b.sum()/a.plain.length;
+    let b1 = SSxy/SSx;
+    let b0 = b.mean() - b1*a.mean();
+    if(fn) return x => x*b1+b0;
+    else if(fn == "both") return [[b0,b1],x => x*b1+b0];
+    else return [b0,b1];
+  }
+  static reg(a,b,degree=1,fn=false){
+    if(sameArr(a.shape,b.shape)){
+      if(a.shape.includes(1) && a.shape.length == 2){
+
+        let X = Matrix.duplicate(a);
+        let Y = Matrix.duplicate(b);
+        if(a.shape.indexOf(1) == 0){ // Row Vectors
+          X.transpose();
+          Y.transpose();
+        }
+        let M;
+        if(degree == 1){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X);
+        }else if(degree == 2){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X,Matrix.pow(X,2));
+        }else if(degree == 3){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X,Matrix.pow(X,2),Matrix.pow(X,3));
+        }else if(degree == 4){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X,Matrix.pow(X,2),Matrix.pow(X,3),Matrix.pow(X,4));
+        }else if(degree == 5){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X,Matrix.pow(X,2),Matrix.pow(X,3),Matrix.pow(X,4),Matrix.pow(X,5));
+        }else if(degree == 6){
+          M = Matrix.matFromVecs(mat_ones(X.shape),X,Matrix.pow(X,2),Matrix.pow(X,3),Matrix.pow(X,4),Matrix.pow(X,5),Matrix.pow(X,6));
+        }else{
+          console.error("Reg only currently supports up to a sixth degree polynomial regression!");
+          return false;
+        }
+        let MtM = Matrix.matMul(Matrix.transpose(M),M);
+        let MtMi = Matrix.invert(MtM);
+        let V = Matrix.matMul(MtMi,Matrix.matMul(Matrix.transpose(M),Y));
+        return V.plain;
+      }else{
+        console.error("A and B must be vectors!");
+        return false;
+      }
+    }else{
+      console.error("Matrix A, and B Shape Mismatch!");
+      return false;
+    }
   }
   //--- Math ---
   static add(a,b){
@@ -767,17 +932,17 @@ class Matrix{
   }
   static matMul(a,b){
     if(!(a.shape.includes(1) && b.shape.includes(1))){
-      if(a.shape.includes(1) || b.shape.includes(1)){
+      if(a.shape.includes(1) || b.shape.includes(1)){ // If there's a vector
           if(a.shape.includes(1)){
             console.error("Matrix transformations require the transformation matrix called first!");
             return false;
           }else{
-            if(b.shape[0] != a.shape[0] && b.shape[1] == a.shape[0]){
+            if(b.shape[0] != a.shape[0] && b.shape[1] == a.shape[0]){ // If b rows don't match a rows &&&&&& b columns match a rows
               console.log("Note: vector transposed to be a column vector!");
-              b.transpose();
+              Matrix.transpose(b);
             }else if(b.shape[1] != a.shape[0] && b.shape[0] != a.shape[0]){
-              console.error("Matrix and vector parameters must match for matrix transformations!");
-              return false;
+              //console.error("Matrix and vector parameters must match for matrix transformations!");
+              //return false;
             }
           }
       }
@@ -785,7 +950,7 @@ class Matrix{
         if(a.shape[0] == b.shape[1] || a.shape[1] == b.shape[0]){
           let tempA;
           let tempB;
-          if(a.shape[0] == b.shape[1] && a.shape[1] == b.shape[0]){
+          if(a.shape[0] == b.shape[1] && a.shape[1] == b.shape[0]){ // shapes are transposes
             if(a.shape[0] > a.shape[1]){
               tempA = a.shape[0];
               tempB = b.shape[1];
@@ -890,7 +1055,6 @@ class Matrix{
                 if(workingMat.data[r][0] > workingMat.data[c][0]){
                   workingMat.swapRows(r,c);
                   operationsArray.push(-1);
-                  console.log(workingMat);
                 }
               }
             }
@@ -927,6 +1091,24 @@ class Matrix{
         }
     }else{
       console.error("Gaussian elimination only works on two-dimensional matricies!");
+      return false;
+    }
+  }
+  static invert(a){
+    if(a.shape.length == 2){
+      if(a.shape[0] == a.shape[1]){
+        if(Matrix.det(a) != 0){
+          return Matrix.gaussElim(Matrix.matFromMatsByCol(a,mat_identity(a.shape)))[0].splitByCol(a.shape[1]);
+        }else{
+          console.error("Matrix is not invertible!");
+          return false;
+        }
+      }else{
+        console.error("Inversion only works on square matricies!");
+        return false;
+      }
+    }else{
+      console.error("Inverting only works on two-dimensional matricies!");
       return false;
     }
   }
