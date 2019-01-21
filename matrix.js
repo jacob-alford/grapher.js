@@ -321,7 +321,7 @@ class Matrix{
     let vecs = this.colsToVectors();
     let outArr = [];
     vecs.forEach((c,i) => {
-      if(i>=low) outArr.push(c);
+      if(i>=low && i<=high) outArr.push(c);
     });
     return Matrix.matFromVecs(outArr);
   }
@@ -592,6 +592,65 @@ class Matrix{
       }
     }else{
       console.error("Matrix A, and B Shape Mismatch!");
+      return false;
+    }
+  }
+  // --- Multivariate Statistics ---
+  meanByCol(){
+    if(!this.shape.includes(1) && this.shape.length == 2){
+      let vecs = this.colsToVectors();
+      let means = [];
+      vecs.forEach(c => means.push(c.mean()));
+      return new Vector(means,"col");
+    }else{
+      console.error(`Taking the mean column-wise requires a two-dimensional matrix!, this matrix has a shape of ${this.shape}`);
+      return false;
+    }
+  }
+  toDeviationVectors(){ // Returns array of column vectors
+    if(!this.shape.includes(1) && this.shape.length == 2){
+      let vecArr = [];
+      for(let i=0;i<this.shape[1];i++){
+        vecArr.push(new Vector(this.getCol(i).sub(this.getCol(i).mean()).plain,"col"));
+      }
+      return vecArr;
+    }else{
+      console.error(`Splitting a matrix into deviation vectors requires a two-dimensional matrix!, this matrix has a shape of ${this.shape}`);
+      return false;
+    }
+  }
+  static covMatrix(a){ // Variance/Covariance Matrix
+    if(!a.shape.includes(1) && a.shape.length == 2){
+      let devVecs = a.toDeviationVectors();
+      let newShape = [devVecs.length,devVecs.length];
+      let outArr = [];
+      for(let i=0;i<devVecs.length;i++){
+        for(let j=0;j<devVecs.length;j++){
+          outArr.push(Matrix.innerProduct(devVecs[i],devVecs[j])/devVecs[0].plain.length);
+        }
+      }
+      return new Matrix(outArr,newShape);
+    }else{
+      console.error(`Generating a variance/covariance matrix requires a two-dimensional matrix input!, this matrix has a shape of ${a.shape}`);
+      return false;
+    }
+  }
+  static corrMatrix(a){
+    if(!a.shape.includes(1) && a.shape.length == 2){
+      let devVecs = a.toDeviationVectors();
+      let newShape = [devVecs.length,devVecs.length];
+      let outArr = [];
+      for(let i=0;i<devVecs.length;i++){
+        for(let j=0;j<devVecs.length;j++){
+          let sij = Matrix.innerProduct(devVecs[i],devVecs[j])/devVecs[0].plain.length;
+          let sii = Matrix.innerProduct(devVecs[i],devVecs[i])/devVecs[0].plain.length;
+          let sjj = Matrix.innerProduct(devVecs[j],devVecs[j])/devVecs[0].plain.length;
+          outArr.push(sij/(Math.sqrt(sii)*Math.sqrt(sjj)));
+        }
+      }
+      return new Matrix(outArr,newShape);
+    }else{
+      console.error(`Generating a correlation matrix requires a two-dimensional matrix!, this matrix has a shape of ${a.shape}`);
       return false;
     }
   }
